@@ -1,0 +1,1806 @@
+<!DOCTYPE html>
+<html lang="en">
+
+  <head>
+    <meta charset="UTF-8">
+    <title>Shadow and badge</title>
+    
+
+  </head>
+    
+  <body>
+  <!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Criminal, Doctor, Police & Villager</title>
+
+    <!-- PeerJS for WebRTC Multiplayer -->
+    <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700;800;900&family=Cinzel:wght@700;900&display=swap" rel="stylesheet">
+    
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+    <style>
+        /* ===================================================================
+           RESET & CORE DESIGN SYSTEM
+           =================================================================== */
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        :root {
+            --bg-dark: #070a12;
+            --panel-bg: rgba(15, 23, 42, 0.88);
+            --border-color: rgba(255, 255, 255, 0.12);
+            --crimson: #ef4444;
+            --emerald: #10b981;
+            --royal: #3b82f6;
+            --amber: #f59e0b;
+            --purple: #8b5cf6;
+            --slate-card: rgba(30, 41, 59, 0.75);
+        }
+
+        html, body {
+            width: 100%;
+            height: 100%;
+            height: 100dvh;
+            overflow: hidden;
+            font-family: 'Outfit', sans-serif;
+            background: radial-gradient(circle at center, #1e293b 0%, #0f172a 50%, #070a12 100%);
+            color: #f3f4f6;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Glassmorphism Panel */
+        .glass-panel {
+            background: var(--panel-bg);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        .glass-card {
+            background: var(--slate-card);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 14px;
+        }
+
+        .font-cinzel { font-family: 'Cinzel', serif; }
+
+        /* Helper Classes */
+        .hidden { display: none !important; }
+
+        /* ===================================================================
+           LAYOUT & CONTAINER ADAPTABILITY (DESKTOP & MOBILE MODE)
+           =================================================================== */
+        #app-wrapper {
+            width: 100%;
+            max-width: 1000px;
+            height: 100%;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            padding: 16px;
+            position: relative;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* Mobile Mode Override Container */
+        body.mobile-mode #app-wrapper {
+            max-width: 412px !important;
+            height: 100dvh !important;
+            padding: 10px !important;
+            border-left: 1px solid rgba(255,255,255,0.1);
+            border-right: 1px solid rgba(255,255,255,0.1);
+            background: rgba(7, 10, 18, 0.95);
+            box-shadow: 0 0 50px rgba(0,0,0,0.8);
+        }
+
+        /* ===================================================================
+           HEADER & NAVIGATION
+           =================================================================== */
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+            z-index: 30;
+            padding-bottom: 8px;
+        }
+
+        .brand-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .brand-logo {
+            width: 40px;
+            height: 40px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #ef4444, #3b82f6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            color: #fff;
+            box-shadow: 0 4px 15px rgba(59, 130, 246, 0.4);
+        }
+
+        .brand-title h1 {
+            font-family: 'Cinzel', serif;
+            font-weight: 900;
+            font-size: 17px;
+            background: linear-gradient(90deg, #f87171, #fbbf24, #60a5fa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.1;
+        }
+
+        .brand-title p {
+            font-size: 10px;
+            color: #94a3b8;
+            letter-spacing: 1.2px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        body.mobile-mode .brand-title p { display: none; }
+
+        .header-controls {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-icon-text {
+            background: rgba(15, 23, 42, 0.8);
+            border: 1px solid var(--border-color);
+            color: #f3f4f6;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            transition: all 0.2s ease;
+        }
+
+        .btn-icon-text:hover {
+            background: rgba(30, 41, 59, 0.9);
+            border-color: rgba(255, 255, 255, 0.25);
+        }
+
+        body.mobile-mode .btn-mode-label { display: none; }
+
+        /* ===================================================================
+           MAIN VIEWPORT ARENA
+           =================================================================== */
+        main {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            width: 100%;
+            margin: 8px 0;
+            z-index: 20;
+            overflow: hidden;
+        }
+
+        .view-screen {
+            width: 100%;
+            max-width: 480px;
+            display: flex;
+            flex-direction: column;
+            gap: 14px;
+            transition: all 0.3s ease;
+        }
+
+        /* 1. CLEAN START MENU (ZERO CARDS VISIBLE) */
+        .menu-box {
+            padding: 24px 20px;
+            text-align: center;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            text-align: left;
+        }
+
+        .input-group label {
+            font-size: 11px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #94a3b8;
+        }
+
+        .custom-input {
+            width: 100%;
+            padding: 12px 14px;
+            border-radius: 12px;
+            background: rgba(15, 23, 42, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            color: #fff;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 14px;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .custom-input:focus { border-color: #6366f1; }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #4f46e5, #2563eb);
+            color: #fff;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(37, 99, 235, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: transform 0.15s, opacity 0.15s;
+        }
+
+        .btn-primary:active { transform: scale(0.97); }
+
+        .btn-secondary {
+            background: rgba(30, 41, 59, 0.9);
+            color: #fff;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 13px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: background 0.2s;
+        }
+
+        .btn-secondary:hover { background: rgba(51, 65, 85, 0.9); }
+
+        .btn-accent {
+            background: linear-gradient(135deg, #059669, #0d9488);
+            color: #fff;
+            border: none;
+            padding: 12px 16px;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 14px;
+            cursor: pointer;
+            box-shadow: 0 6px 20px rgba(13, 148, 136, 0.35);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-accent:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .divider-line {
+            display: flex;
+            align-items: center;
+            text-align: center;
+            color: #64748b;
+            font-size: 10px;
+            font-weight: 800;
+            margin: 4px 0;
+        }
+
+        .divider-line::before, .divider-line::after {
+            content: '';
+            flex: 1;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .divider-line span { padding: 0 8px; }
+
+        /* 2. LOBBY VIEW */
+        .lobby-header-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .code-display {
+            font-family: monospace;
+            font-weight: 900;
+            font-size: 22px;
+            color: #fbbf24;
+            letter-spacing: 4px;
+        }
+
+        .roster-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            max-height: 180px;
+            overflow-y: auto;
+            padding-right: 4px;
+        }
+
+        .player-badge {
+            padding: 10px 12px;
+            background: rgba(30, 41, 59, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        /* 3. ARENA 2D GRID VIEW */
+        #view-arena-grid {
+            width: 100%;
+            max-width: 800px;
+        }
+
+        .arena-grid {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 10px;
+            width: 100%;
+        }
+
+        body.mobile-mode .arena-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 8px !important;
+        }
+
+        .arena-card {
+            padding: 12px 10px;
+            border-radius: 16px;
+            background: rgba(15, 23, 42, 0.75);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            gap: 6px;
+            position: relative;
+            transition: all 0.25s ease;
+        }
+
+        /* ANONYMITY FIX: Removed .arena-card.active-turn styles to keep all cards completely neutral */
+
+        .avatar-circle {
+            width: 42px;
+            height: 42px;
+            border-radius: 50%;
+            background: #1e293b;
+            border: 2px solid rgba(255,255,255,0.15);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: #94a3b8;
+        }
+
+        .arena-player-name {
+            font-size: 12px;
+            font-weight: 800;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .arena-player-score {
+            font-size: 10px;
+            font-weight: 700;
+            color: #fbbf24;
+            background: rgba(0,0,0,0.3);
+            padding: 2px 8px;
+            border-radius: 10px;
+        }
+
+        /* STATUS BANNER (TOP OVERLAY) */
+        #game-status-banner {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 40;
+            pointer-events: none;
+            width: auto;
+            white-space: nowrap;
+        }
+
+        .banner-chip {
+            padding: 8px 18px;
+            border-radius: 30px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 12px;
+            font-weight: 800;
+            color: #fff;
+        }
+
+        .banner-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ef4444;
+            animation: pulse-dot 1.5s infinite;
+        }
+
+        @keyframes pulse-dot {
+            0%, 100% { opacity: 0.3; }
+            50% { opacity: 1; }
+        }
+
+        /* ACTION SELECTION PANEL */
+        #view-action-panel {
+            position: absolute;
+            z-index: 50;
+            padding: 18px;
+            text-align: center;
+            border: 2px solid rgba(99, 102, 241, 0.6);
+            width: 100%;
+            max-width: 440px;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 10px;
+            font-weight: 900;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            margin-bottom: 6px;
+        }
+
+        .role-badge.crimson { background: rgba(239, 68, 68, 0.25); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4); }
+        .role-badge.emerald { background: rgba(16, 185, 129, 0.25); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4); }
+        .role-badge.royal { background: rgba(59, 130, 246, 0.25); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4); }
+
+        .target-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+            max-height: 160px;
+            overflow-y: auto;
+        }
+
+        .target-btn {
+            padding: 10px;
+            background: rgba(30, 41, 59, 0.9);
+            border: 1px solid rgba(255, 255, 255, 0.12);
+            border-radius: 12px;
+            color: #fff;
+            font-weight: 700;
+            font-size: 12px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            transition: all 0.2s ease;
+        }
+
+        .target-btn:hover {
+            background: #4f46e5;
+            border-color: #818cf8;
+        }
+
+        /* 4. ROUND RECAP & EXPOSED ROLES SCOREBOARD */
+        #view-round-summary {
+            max-width: 500px;
+            max-height: 85vh;
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        .recap-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            overflow-y: auto;
+            max-height: 260px;
+            margin: 12px 0;
+            padding-right: 4px;
+        }
+
+        .recap-item {
+            padding: 10px 12px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 13px;
+        }
+
+        .recap-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .recap-role-tag {
+            font-size: 10px;
+            font-weight: 800;
+            padding: 3px 8px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* ===================================================================
+           SECRET ROLE CARD FOOTER (ONLY VISIBLE IN-GAME)
+           =================================================================== */
+        footer {
+            width: 100%;
+            display: flex;
+            align-items: flex-end;
+            justify-content: space-between;
+            z-index: 30;
+            padding-top: 6px;
+        }
+
+        .card-perspective {
+            perspective: 1000px;
+            width: 100px;
+            height: 140px;
+            cursor: pointer;
+        }
+
+        body.mobile-mode .card-perspective {
+            width: 85px;
+            height: 120px;
+        }
+
+        .card-inner {
+            width: 100%;
+            height: 100%;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+            border-radius: 14px;
+        }
+
+        .card-perspective.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+            border-radius: 14px;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            text-align: center;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+
+        /* Sealed Card Front */
+        .card-front {
+            background: linear-gradient(145deg, #0f172a, #1e1b4b);
+            border-color: rgba(99, 102, 241, 0.5);
+            align-items: center;
+        }
+
+        /* Exposed Role Back */
+        .card-back {
+            transform: rotateY(180deg);
+            background: linear-gradient(145deg, #0f172a, #311b92);
+            border-color: #fbbf24;
+        }
+
+        .card-back.criminal { background: linear-gradient(145deg, #180505, #450a0a); border-color: #ef4444; }
+        .card-back.doctor { background: linear-gradient(145deg, #022c22, #064e3b); border-color: #10b981; }
+        .card-back.police { background: linear-gradient(145deg, #0f172a, #1e3a8a); border-color: #3b82f6; }
+        .card-back.villager { background: linear-gradient(145deg, #1c1917, #451a03); border-color: #f59e0b; }
+
+        /* MODALS & TOAST */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(10px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 16px;
+        }
+
+        #toast-msg {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 120;
+            padding: 10px 20px;
+            border-radius: 20px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid #6366f1;
+            color: #c7d2fe;
+            font-size: 12px;
+            font-weight: 700;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            transition: opacity 0.3s;
+        }
+
+        #toast-msg.hidden { opacity: 0; pointer-events: none; }
+    </style>
+</head>
+<body class="desktop-mode">
+
+    <!-- MAIN APP WRAPPER -->
+    <div id="app-wrapper">
+
+        <!-- HEADER / NAVIGATION -->
+        <header>
+            <div class="brand-container">
+                <div class="brand-logo">
+                    <i class="fa-solid fa-masks-theater"></i>
+                </div>
+                <div class="brand-title">
+                    <h1>SHADOW & BADGE</h1>
+                    <p>Criminal • Doctor • Police • Villager</p>
+                </div>
+            </div>
+
+            <div class="header-controls">
+                <!-- Desktop vs Mobile Mode Button -->
+                <button id="btn-mode-toggle" class="btn-icon-text">
+                    <i id="mode-icon" class="fa-solid fa-desktop" style="color: #60a5fa;"></i>
+                    <span id="mode-text" class="btn-mode-label">Desktop Mode</span>
+                </button>
+
+                <!-- Instructions Button -->
+                <button id="btn-rules" class="btn-icon-text" style="color: #fbbf24;">
+                    <i class="fa-solid fa-book-open"></i>
+                    <span class="btn-mode-label">Instructions</span>
+                </button>
+
+                <!-- Audio Toggle -->
+                <button id="btn-audio" class="btn-icon-text" style="padding: 8px 10px;">
+                    <i id="audio-icon" class="fa-solid fa-volume-high" style="color: #34d399;"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- MAIN INTERACTIVE ARENA -->
+        <main>
+
+            <!-- 1. CLEAN START MENU (ZERO CARDS OR ROLE PREVIEWS AT FIRST) -->
+            <div id="view-start" class="view-screen glass-panel menu-box">
+                <div style="margin-bottom: 14px;">
+                    <div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(30,41,59,0.8); margin: 0 auto 10px; display: flex; align-items: center; justify-content: center; font-size: 22px; color: #fbbf24; border: 1px solid rgba(255,255,255,0.15);">
+                        <i class="fa-solid fa-user-secret"></i>
+                    </div>
+                    <h2 class="font-cinzel" style="font-size: 20px; color: #fff;">Criminal, Doctor, Police & Villager</h2>
+                    <p style="font-size: 12px; color: #94a3b8; margin-top: 2px;">Enter your player codename to begin</p>
+                </div>
+
+                <div class="input-group">
+                    <label>Your Name</label>
+                    <input id="input-player-name" type="text" maxlength="12" placeholder="e.g. Agent Ace" class="custom-input">
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 10px;">
+                    <button id="btn-create-game" class="btn-primary">
+                        <i class="fa-solid fa-plus"></i> Create Game
+                    </button>
+
+                    <div class="divider-line">
+                        <span>OR JOIN A ROOM</span>
+                    </div>
+
+                    <div style="display: flex; gap: 8px;">
+                        <input id="input-room-code" type="text" maxlength="4" placeholder="4-LETTER CODE" class="custom-input" style="text-align: center; letter-spacing: 3px; font-family: monospace; color: #fbbf24; text-transform: uppercase;">
+                        <button id="btn-join-game" class="btn-secondary" style="white-space: nowrap;">
+                            <i class="fa-solid fa-right-to-bracket"></i> Join Game
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. LOBBY VIEW (WAITING ROOM - STILL NO ROLE CARDS DEALT) -->
+            <div id="view-lobby" class="view-screen glass-panel menu-box hidden">
+                <div class="lobby-header-row">
+                    <div style="text-align: left;">
+                        <span style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Room Code</span>
+                        <div style="display: flex; align-items: center; gap: 8px; margin-top: 2px;">
+                            <span id="display-room-code" class="code-display">----</span>
+                            <button id="btn-copy-code" class="btn-secondary" style="padding: 4px 8px; font-size: 10px;">
+                                <i class="fa-regular fa-copy"></i> Copy
+                            </button>
+                        </div>
+                    </div>
+
+                    <div style="text-align: right;">
+                        <span style="font-size: 10px; font-weight: 800; color: #94a3b8; text-transform: uppercase;">Rounds</span>
+                        <select id="select-rounds" class="custom-input" style="padding: 4px 8px; font-size: 12px; margin-top: 2px; width: auto; color: #818cf8;">
+                            <option value="3">3 Rounds</option>
+                            <option value="5">5 Rounds</option>
+                            <option value="7">7 Rounds</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div>
+                    <div style="display: flex; justify-content: space-between; font-size: 11px; font-weight: 800; color: #94a3b8; margin-bottom: 6px; text-transform: uppercase;">
+                        <span>Players Joined (<span id="player-count">1</span>/8)</span>
+                        <span style="color: #fbbf24;">4–8 Required</span>
+                    </div>
+                    <div id="lobby-players-grid" class="roster-grid">
+                        <!-- Dynamic Player Badges -->
+                    </div>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 6px;">
+                    <button id="btn-add-bot" class="btn-secondary">
+                        <i class="fa-solid fa-robot" style="color: #818cf8;"></i> + Add Bot Player
+                    </button>
+                    <button id="btn-start-game" class="btn-accent" disabled>
+                        <i class="fa-solid fa-play"></i> START MATCH
+                    </button>
+                    <p id="guest-waiting-msg" class="hidden" style="font-size: 11px; color: #94a3b8; font-style: italic;">
+                        Waiting for Host to start match...
+                    </p>
+                </div>
+            </div>
+
+            <!-- ACTIVE TURN STATUS BANNER -->
+            <div id="game-status-banner" class="hidden">
+                <div class="banner-chip">
+                    <span class="banner-dot"></span>
+                    <span id="banner-text">Criminal 1 is playing...</span>
+                </div>
+            </div>
+
+            <!-- 3. ARENA 2D PLAYER GRID (CARDS APPEAR ONLY NOW) -->
+            <div id="view-arena-grid" class="view-screen hidden">
+                <div id="arena-players-container" class="arena-grid">
+                    <!-- Dynamic 2D Player Cards -->
+                </div>
+            </div>
+
+            <!-- ACTION TARGET SELECTION PANEL -->
+            <div id="view-action-panel" class="glass-panel hidden">
+                <span id="action-role-badge" class="role-badge crimson">YOUR TURN</span>
+                <h3 id="action-title" class="font-cinzel" style="font-size: 15px; color: #fff;">Criminal 1, who do you want to kill?</h3>
+                <p style="font-size: 11px; color: #94a3b8; margin-top: 2px;">Role targets remain 100% confidential</p>
+
+                <div id="action-targets-list" class="target-grid">
+                    <!-- Target Select Buttons -->
+                </div>
+            </div>
+
+            <!-- 4. END OF ROUND RECAP SCOREBOARD (ROLES EXPOSED + POINTS ONLY - STRICT NO ACTION EXPOSURE) -->
+            <div id="view-round-summary" class="view-screen glass-panel hidden">
+                <div style="text-align: center;">
+                    <span style="font-size: 10px; font-weight: 800; color: #818cf8; text-transform: uppercase;">Round Completed</span>
+                    <h2 class="font-cinzel" style="font-size: 20px; color: #fff; margin-top: 2px;">Exposed Roles & Round Scores</h2>
+                    <p style="font-size: 11px; color: #94a3b8;">Confidential round breakdown and score tallies:</p>
+                </div>
+
+                <div id="recap-players-list" class="recap-list">
+                    <!-- Exposed role cards list -->
+                </div>
+
+                <button id="btn-next-round" class="btn-primary" style="width: 100%; padding: 12px;">
+                    Next Round (Reshuffle Cards) <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </div>
+
+            <!-- 5. FINAL WINNER PODIUM -->
+            <div id="view-final-winner" class="view-screen glass-panel menu-box hidden">
+                <div style="width: 56px; height: 56px; border-radius: 50%; background: rgba(245, 158, 11, 0.2); margin: 0 auto 8px; display: flex; align-items: center; justify-content: center; font-size: 26px; color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);">
+                    <i class="fa-solid fa-trophy"></i>
+                </div>
+                <span style="font-size: 10px; font-weight: 800; color: #fbbf24; text-transform: uppercase; letter-spacing: 1.5px;">Match Champion</span>
+                <h2 id="final-winner-name" class="font-cinzel" style="font-size: 26px; color: #fff; margin: 4px 0;">Agent Ace</h2>
+                <p id="final-winner-score" style="font-size: 12px; font-weight: 700; color: #94a3b8; margin-bottom: 12px;">Total Points: 5</p>
+
+                <div style="background: rgba(15,23,42,0.8); border-radius: 12px; padding: 10px; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px; max-height: 150px; overflow-y: auto;">
+                    <div id="final-leaderboard-list" style="display: flex; flex-direction: column; gap: 6px; text-align: left;">
+                        <!-- Final scores -->
+                    </div>
+                </div>
+
+                <button id="btn-play-again" class="btn-accent" style="width: 100%;">
+                    <i class="fa-solid fa-rotate-right"></i> PLAY AGAIN
+                </button>
+            </div>
+
+        </main>
+
+        <!-- FOOTER: SECRET ROLE CARD WIDGET (STRICTLY HIDDEN UNTIL IN-GAME TURN PHASE) -->
+        <footer id="game-footer" class="hidden">
+            <div style="display: flex; align-items: flex-end; gap: 10px;">
+                <!-- 3D Flip Card Widget -->
+                <div id="secret-card-container" class="card-perspective">
+                    <div class="card-inner">
+                        <!-- Front (Sealed) -->
+                        <div class="card-front">
+                            <i class="fa-solid fa-shield-cat" style="font-size: 22px; color: #818cf8; margin-top: 10px;"></i>
+                            <div>
+                                <span style="font-size: 9px; font-weight: 900; color: #c7d2fe; letter-spacing: 1px; display: block;">SECRET ROLE</span>
+                                <span style="font-size: 8px; color: #64748b;">Tap to Peek</span>
+                            </div>
+                        </div>
+                        <!-- Back (Exposed) -->
+                        <div id="card-back-view" class="card-back villager">
+                            <div style="display: flex; justify-content: space-between; font-size: 8px; font-weight: 900; color: #fbbf24;">
+                                <span>ROLE CARD</span>
+                                <i id="card-role-icon" class="fa-solid fa-user-secret"></i>
+                            </div>
+                            <div>
+                                <h4 id="card-role-title" class="font-cinzel" style="font-size: 11px; color: #fff;">Villager 1</h4>
+                                <p id="card-role-desc" style="font-size: 8px; color: #cbd5e1; margin-top: 2px; line-height: 1.2;">Survive the round.</p>
+                            </div>
+                            <span style="font-size: 7px; font-weight: 800; color: rgba(255,255,255,0.6); text-transform: uppercase;">Keep Secret</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="glass-card" style="padding: 6px 10px; text-align: left;">
+                    <span style="font-size: 9px; font-weight: 800; color: #94a3b8; text-transform: uppercase; display: block;">Match Status</span>
+                    <span id="display-current-round" style="font-size: 11px; font-weight: 800; color: #818cf8;">Round 1 / 3</span>
+                </div>
+            </div>
+
+            <!-- Peek Toggle Button -->
+            <button id="btn-peek-card" class="btn-secondary" style="padding: 8px 12px; font-size: 11px; color: #fbbf24;">
+                <i id="peek-icon" class="fa-solid fa-eye"></i>
+                <span id="peek-text">Peek Role Card</span>
+            </button>
+        </footer>
+
+    </div>
+
+    <!-- INSTRUCTIONS / RULES MODAL -->
+    <div id="modal-rules" class="modal-overlay hidden">
+        <div class="glass-panel" style="width: 100%; max-width: 460px; max-height: 85vh; padding: 20px; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; padding-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); margin-bottom: 12px;">
+                <h3 class="font-cinzel" style="font-size: 16px; color: #fbbf24;">
+                    <i class="fa-solid fa-book-open"></i> Instructions & Scoring Rules
+                </h3>
+                <button id="btn-close-rules" class="btn-secondary" style="padding: 4px 8px; border-radius: 50%;">
+                    <i class="fa-solid fa-xmark"></i>
+                </button>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; font-size: 12px; color: #cbd5e1; line-height: 1.4;">
+                <div>
+                    <h4 style="font-weight: 800; color: #fff; margin-bottom: 2px;">1. Fresh Cards Every Round</h4>
+                    <p>Secret roles are randomly shuffled and dealt to every player at the start of each round. Nobody is eliminated—all players accumulate points across rounds.</p>
+                </div>
+                <div>
+                    <h4 style="font-weight: 800; color: #fff; margin-bottom: 2px;">2. Sequential Turn Order</h4>
+                    <p>Turns proceed strictly in order: <strong>Criminal 1/2 $\rightarrow$ Doctor 1/2 $\rightarrow$ Police 1/2</strong>. Targeted player selections remain 100% confidential.</p>
+                </div>
+                <div>
+                    <h4 style="font-weight: 800; color: #fff; margin-bottom: 4px;">3. Confidential Point Matrix</h4>
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px;">
+                        <div style="padding: 8px; background: rgba(15,23,42,0.8); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+                            <strong style="color: #ef4444; display: block;">Criminal (+1 Pt)</strong>
+                            Targeted a Villager.
+                        </div>
+                        <div style="padding: 8px; background: rgba(15,23,42,0.8); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+                            <strong style="color: #10b981; display: block;">Doctor (+1 Pt)</strong>
+                            Healed a targeted Villager.
+                        </div>
+                        <div style="padding: 8px; background: rgba(15,23,42,0.8); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+                            <strong style="color: #3b82f6; display: block;">Police (+1 Pt)</strong>
+                            Arrested a Criminal.
+                        </div>
+                        <div style="padding: 8px; background: rgba(15,23,42,0.8); border-radius: 8px; border: 1px solid rgba(255,255,255,0.08);">
+                            <strong style="color: #f59e0b; display: block;">Villager (+1 Pt)</strong>
+                            Survived the round.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOAST NOTIFICATION -->
+    <div id="toast-msg" class="hidden">Notification</div>
+
+    <!-- MAIN SCRIPT ENGINE -->
+    <script>
+        /* ===================================================================
+           1. PROCEDURAL SOUND SYNTHESIZER (Web Audio API)
+           =================================================================== */
+        class SoundFX {
+            constructor() {
+                this.ctx = null;
+                this.muted = false;
+            }
+
+            init() {
+                if (!this.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    this.ctx = new AudioContext();
+                }
+                if (this.ctx.state === 'suspended') {
+                    this.ctx.resume();
+                }
+            }
+
+            playTone(freq, type = 'sine', duration = 0.12, gainVal = 0.08) {
+                if (this.muted) return;
+                this.init();
+                try {
+                    const osc = this.ctx.createOscillator();
+                    const gain = this.ctx.createGain();
+                    osc.type = type;
+                    osc.frequency.setValueAtTime(freq, this.ctx.currentTime);
+                    gain.gain.setValueAtTime(gainVal, this.ctx.currentTime);
+                    gain.gain.exponentialRampToValueAtTime(0.0001, this.ctx.currentTime + duration);
+                    osc.connect(gain);
+                    gain.connect(this.ctx.destination);
+                    osc.start();
+                    osc.stop(this.ctx.currentTime + duration);
+                } catch (e) {}
+            }
+
+            playClick() { this.playTone(550, 'sine', 0.04, 0.06); }
+            playChime() {
+                this.playTone(523.25, 'triangle', 0.12, 0.08);
+                setTimeout(() => this.playTone(659.25, 'triangle', 0.2, 0.08), 80);
+            }
+            playTurn() {
+                this.playTone(440, 'sine', 0.08, 0.06);
+                setTimeout(() => this.playTone(880, 'sine', 0.12, 0.06), 70);
+            }
+            playPoints() {
+                [523.25, 659.25, 783.99].forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 'sine', 0.18, 0.08), idx * 75);
+                });
+            }
+            playFanfare() {
+                [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
+                    setTimeout(() => this.playTone(freq, 'triangle', 0.3, 0.12), idx * 100);
+                });
+            }
+        }
+        const sfx = new SoundFX();
+
+        /* ===================================================================
+           2. STATE MANAGEMENT & WEBRTC / BROADCAST CHANNEL NETWORKING
+           =================================================================== */
+        const GameState = {
+            mode: 'desktop',
+            isHost: false,
+            roomCode: '',
+            playerName: 'Agent Ace',
+            myId: 'player_' + Math.floor(Math.random() * 1000000),
+            maxRounds: 3,
+            currentRound: 1,
+            phase: 'START', // START, LOBBY, TURN_SEQUENCE, ROUND_SUMMARY, FINAL_WINNER
+            players: [], // { id, name, isBot, roleTitle, roleType, points, roundPoints }
+            turnQueue: [],
+            currentTurnIndex: 0,
+            turnActions: {}, // { 'Criminal 1': targetId }
+            cardRevealed: false
+        };
+
+        const BOT_NAMES = ['Bot Viper', 'Bot Cipher', 'Bot Oracle', 'Bot Spectre', 'Bot Maverick', 'Bot Aegis', 'Bot Nyx'];
+
+        class NetworkManager {
+            constructor() {
+                this.peer = null;
+                this.hostConn = null;
+                this.guestConns = [];
+                this.broadcastChannel = null;
+            }
+
+            initHost(roomCode) {
+                this.destroy();
+                GameState.isHost = true;
+                GameState.roomCode = roomCode.toUpperCase();
+
+                // BroadcastChannel fallback for multi-tab testing
+                this.broadcastChannel = new BroadcastChannel(`cdpv-bc-${GameState.roomCode}`);
+                this.broadcastChannel.onmessage = (evt) => this.handleIncomingMessage(evt.data, null);
+
+                // PeerJS connection
+                const peerId = `cdpv-room-${GameState.roomCode.toLowerCase()}`;
+                try {
+                    this.peer = new Peer(peerId, { debug: 1 });
+                    this.peer.on('connection', (conn) => {
+                        conn.on('open', () => {
+                            if (!this.guestConns.includes(conn)) this.guestConns.push(conn);
+                        });
+                        conn.on('data', (data) => this.handleIncomingMessage(data, conn));
+                        conn.on('close', () => {
+                            this.guestConns = this.guestConns.filter(c => c !== conn);
+                        });
+                    });
+                    this.peer.on('error', (err) => console.warn('PeerJS Host notice:', err));
+                } catch (e) {}
+            }
+
+            initGuest(roomCode, onSuccess, onError) {
+                this.destroy();
+                GameState.isHost = false;
+                GameState.roomCode = roomCode.toUpperCase();
+
+                let connected = false;
+                const codeLower = GameState.roomCode.toLowerCase();
+
+                // BroadcastChannel for multi-tab testing
+                this.broadcastChannel = new BroadcastChannel(`cdpv-bc-${GameState.roomCode}`);
+                this.broadcastChannel.onmessage = (evt) => this.handleIncomingMessage(evt.data, null);
+
+                setTimeout(() => {
+                    this.sendToHost({ type: 'JOIN_REQ', player: { id: GameState.myId, name: GameState.playerName } });
+                }, 150);
+
+                // PeerJS WebRTC
+                try {
+                    this.peer = new Peer();
+                    this.peer.on('open', () => {
+                        const targetId = `cdpv-room-${codeLower}`;
+                        const conn = this.peer.connect(targetId, { reliable: true });
+
+                        conn.on('open', () => {
+                            connected = true;
+                            this.hostConn = conn;
+                            this.sendToHost({ type: 'JOIN_REQ', player: { id: GameState.myId, name: GameState.playerName } });
+                            if (onSuccess) onSuccess();
+                        });
+
+                        conn.on('data', (data) => this.handleIncomingMessage(data, conn));
+                        conn.on('error', () => { if (!connected && onError) onError('Unable to connect to room.'); });
+                    });
+
+                    this.peer.on('error', () => { if (!connected && onError) onError('Room not found or host offline.'); });
+                } catch (e) {
+                    if (onError) onError('Connection error.');
+                }
+            }
+
+            sendToHost(msg) {
+                if (this.hostConn && this.hostConn.open) this.hostConn.send(msg);
+                if (this.broadcastChannel) this.broadcastChannel.postMessage(msg);
+            }
+
+            broadcastState() {
+                if (!GameState.isHost) return;
+                const payload = {
+                    type: 'STATE_SYNC',
+                    state: {
+                        players: GameState.players,
+                        phase: GameState.phase,
+                        currentRound: GameState.currentRound,
+                        maxRounds: GameState.maxRounds,
+                        turnQueue: GameState.turnQueue,
+                        currentTurnIndex: GameState.currentTurnIndex,
+                        turnActions: GameState.turnActions
+                    }
+                };
+                this.guestConns.forEach(conn => { if (conn.open) conn.send(payload); });
+                if (this.broadcastChannel) this.broadcastChannel.postMessage(payload);
+            }
+
+            handleIncomingMessage(msg, conn) {
+                if (!msg || !msg.type) return;
+
+                if (GameState.isHost) {
+                    if (msg.type === 'JOIN_REQ') {
+                        const req = msg.player;
+                        if (GameState.players.length >= 8) {
+                            if (conn) conn.send({ type: 'ERROR', message: 'Room is full (Max 8 players).' });
+                            return;
+                        }
+                        if (GameState.phase !== 'LOBBY' && GameState.phase !== 'START') {
+                            if (conn) conn.send({ type: 'ERROR', message: 'Game already in progress.' });
+                            return;
+                        }
+
+                        let pName = req.name;
+                        let count = 1;
+                        while (GameState.players.some(p => p.id !== req.id && p.name === pName)) {
+                            count++;
+                            pName = `${req.name} ${count}`;
+                        }
+
+                        let existing = GameState.players.find(p => p.id === req.id);
+                        if (!existing) {
+                            GameState.players.push({
+                                id: req.id,
+                                name: pName,
+                                isBot: false,
+                                points: 0,
+                                roundPoints: 0
+                            });
+                        } else {
+                            existing.name = pName;
+                        }
+
+                        renderLobbyGrid();
+                        this.broadcastState();
+                    } else if (msg.type === 'SUBMIT_ACTION') {
+                        recordTurnAction(msg.roleTitle, msg.targetId);
+                    }
+                } else {
+                    if (msg.type === 'STATE_SYNC') {
+                        const sync = msg.state;
+                        GameState.players = sync.players;
+                        GameState.phase = sync.phase;
+                        GameState.currentRound = sync.currentRound;
+                        GameState.maxRounds = sync.maxRounds;
+                        GameState.turnQueue = sync.turnQueue;
+                        GameState.currentTurnIndex = sync.currentTurnIndex;
+                        GameState.turnActions = sync.turnActions;
+
+                        onGuestStateUpdate();
+                    } else if (msg.type === 'ERROR') {
+                        showToast(msg.message);
+                    }
+                }
+            }
+
+            destroy() {
+                if (this.peer) { try { this.peer.destroy(); } catch (e) {} this.peer = null; }
+                if (this.broadcastChannel) { try { this.broadcastChannel.close(); } catch (e) {} this.broadcastChannel = null; }
+                this.hostConn = null;
+                this.guestConns = [];
+            }
+        }
+
+        const net = new NetworkManager();
+
+        /* ===================================================================
+           3. GAME LOGIC & RANDOM ROLE SHUFFLE EVERY ROUND
+           =================================================================== */
+        function generate4LetterCode() {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let code = '';
+            for (let i = 0; i < 4; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+            return code;
+        }
+
+        function createRoleDeck(playerCount) {
+            let deck = [];
+            if (playerCount === 4) {
+                deck = ['Criminal 1', 'Doctor 1', 'Police 1', 'Villager 1'];
+            } else if (playerCount === 5) {
+                deck = ['Criminal 1', 'Doctor 1', 'Police 1', 'Villager 1', 'Villager 2'];
+            } else if (playerCount === 6) {
+                deck = ['Criminal 1', 'Criminal 2', 'Doctor 1', 'Police 1', 'Villager 1', 'Villager 2'];
+            } else if (playerCount === 7) {
+                deck = ['Criminal 1', 'Criminal 2', 'Doctor 1', 'Doctor 2', 'Police 1', 'Villager 1', 'Villager 2'];
+            } else { // 8 players
+                deck = ['Criminal 1', 'Criminal 2', 'Doctor 1', 'Doctor 2', 'Police 1', 'Police 2', 'Villager 1', 'Villager 2'];
+            }
+
+            // Fresh Random Shuffle Each Round
+            for (let i = deck.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [deck[i], deck[j]] = [deck[j], deck[i]];
+            }
+            return deck;
+        }
+
+        function startMatch() {
+            if (GameState.players.length < 4) return;
+            GameState.currentRound = 1;
+            GameState.players.forEach(p => { p.points = 0; p.roundPoints = 0; });
+            startRound();
+        }
+
+        function startRound() {
+            GameState.phase = 'TURN_SEQUENCE';
+            GameState.turnActions = {};
+
+            if (GameState.isHost) {
+                // Re-shuffle fresh secret cards every round!
+                const deck = createRoleDeck(GameState.players.length);
+                GameState.players.forEach((p, idx) => {
+                    p.roleTitle = deck[idx];
+                    p.roleType = deck[idx].startsWith('Criminal') ? 'criminal' : 
+                                 deck[idx].startsWith('Doctor') ? 'doctor' :
+                                 deck[idx].startsWith('Police') ? 'police' : 'villager';
+                });
+
+                // Sequential Turn Queue: Criminal 1 -> Criminal 2 -> Doctor 1 -> Doctor 2 -> Police 1 -> Police 2
+                GameState.turnQueue = [];
+                const roleOrder = ['Criminal 1', 'Criminal 2', 'Doctor 1', 'Doctor 2', 'Police 1', 'Police 2'];
+                roleOrder.forEach(rTitle => {
+                    if (GameState.players.some(p => p.roleTitle === rTitle)) {
+                        GameState.turnQueue.push(rTitle);
+                    }
+                });
+
+                GameState.currentTurnIndex = 0;
+                net.broadcastState();
+            }
+
+            onGuestStateUpdate();
+            processNextTurn();
+        }
+
+        function onGuestStateUpdate() {
+            if (GameState.phase === 'START') {
+                document.getElementById('view-start').classList.remove('hidden');
+                document.getElementById('view-lobby').classList.add('hidden');
+                document.getElementById('view-arena-grid').classList.add('hidden');
+                document.getElementById('game-status-banner').classList.add('hidden');
+                document.getElementById('game-footer').classList.add('hidden');
+                document.getElementById('view-round-summary').classList.add('hidden');
+                document.getElementById('view-final-winner').classList.add('hidden');
+            } else if (GameState.phase === 'LOBBY') {
+                document.getElementById('view-start').classList.add('hidden');
+                document.getElementById('view-lobby').classList.remove('hidden');
+                document.getElementById('view-arena-grid').classList.add('hidden');
+                document.getElementById('game-status-banner').classList.add('hidden');
+                document.getElementById('game-footer').classList.add('hidden');
+                document.getElementById('view-round-summary').classList.add('hidden');
+                document.getElementById('view-final-winner').classList.add('hidden');
+                document.getElementById('display-room-code').textContent = GameState.roomCode;
+                renderLobbyGrid();
+            } else if (GameState.phase === 'TURN_SEQUENCE') {
+                document.getElementById('view-start').classList.add('hidden');
+                document.getElementById('view-lobby').classList.add('hidden');
+                document.getElementById('view-arena-grid').classList.remove('hidden');
+                document.getElementById('game-status-banner').classList.remove('hidden');
+                document.getElementById('game-footer').classList.remove('hidden'); // CARDS APPEAR ONLY NOW
+                document.getElementById('view-round-summary').classList.add('hidden');
+                document.getElementById('view-final-winner').classList.add('hidden');
+                document.getElementById('display-current-round').textContent = `Round ${GameState.currentRound} / ${GameState.maxRounds}`;
+                
+                updateMyCardView();
+                renderArenaGrid();
+                processNextTurn();
+            } else if (GameState.phase === 'ROUND_SUMMARY') {
+                document.getElementById('view-action-panel').classList.add('hidden');
+                showRoundSummaryView();
+            } else if (GameState.phase === 'FINAL_WINNER') {
+                showFinalWinnerView();
+            }
+        }
+
+        function renderArenaGrid() {
+            const container = document.getElementById('arena-players-container');
+            if (!container) return;
+
+            // ANONYMITY FIX: Render all player tiles completely neutrally (zero active-turn class or highlight)
+            container.innerHTML = GameState.players.map(p => {
+                return `
+                    <div class="arena-card">
+                        <div class="avatar-circle">
+                            <i class="fa-solid fa-user"></i>
+                        </div>
+                        <span class="arena-player-name">${p.name}</span>
+                        <span class="arena-player-score">${p.points} Pts</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function processNextTurn() {
+            if (GameState.phase !== 'TURN_SEQUENCE') return;
+
+            if (GameState.currentTurnIndex >= GameState.turnQueue.length) {
+                if (GameState.isHost) finishRound();
+                return;
+            }
+
+            const activeRoleTitle = GameState.turnQueue[GameState.currentTurnIndex];
+            const activePlayer = GameState.players.find(p => p.roleTitle === activeRoleTitle);
+
+            // Generic status banner for all observing players (e.g. "Criminal 1 is playing...")
+            const bannerText = document.getElementById('banner-text');
+            bannerText.textContent = `${activeRoleTitle} is playing...`;
+
+            renderArenaGrid();
+
+            const isMyTurn = (activePlayer && activePlayer.id === GameState.myId);
+            const actionPanel = document.getElementById('view-action-panel');
+
+            if (isMyTurn) {
+                actionPanel.classList.remove('hidden');
+                setupActionPanel(activeRoleTitle);
+                sfx.playTurn();
+            } else {
+                actionPanel.classList.add('hidden');
+                if (GameState.isHost && activePlayer && activePlayer.isBot) {
+                    setTimeout(() => {
+                        executeBotAction(activeRoleTitle, activePlayer);
+                    }, 1400);
+                }
+            }
+        }
+
+        function setupActionPanel(activeRoleTitle) {
+            const titleElem = document.getElementById('action-title');
+            const badgeElem = document.getElementById('action-role-badge');
+            const targetsList = document.getElementById('action-targets-list');
+            targetsList.innerHTML = '';
+
+            let actionText = '';
+            let badgeClass = 'crimson';
+            if (activeRoleTitle.startsWith('Criminal')) {
+                actionText = 'who do you want to kill?';
+                badgeClass = 'crimson';
+            } else if (activeRoleTitle.startsWith('Doctor')) {
+                actionText = 'who do you want to heal?';
+                badgeClass = 'emerald';
+            } else if (activeRoleTitle.startsWith('Police')) {
+                actionText = 'who do you want to arrest?';
+                badgeClass = 'royal';
+            }
+
+            badgeElem.className = `role-badge ${badgeClass}`;
+            badgeElem.textContent = activeRoleTitle;
+            titleElem.textContent = `${activeRoleTitle}, ${actionText}`;
+
+            const eligibleTargets = GameState.players.filter(p => p.id !== GameState.myId);
+
+            eligibleTargets.forEach(p => {
+                const btn = document.createElement('button');
+                btn.className = 'target-btn';
+                btn.innerHTML = `
+                    <span>${p.name}</span>
+                    <span style="color: #fbbf24; font-size: 10px;">Select</span>
+                `;
+                btn.onclick = () => {
+                    sfx.playClick();
+                    document.getElementById('view-action-panel').classList.add('hidden');
+                    if (GameState.isHost) {
+                        recordTurnAction(activeRoleTitle, p.id);
+                    } else {
+                        net.sendToHost({ type: 'SUBMIT_ACTION', roleTitle: activeRoleTitle, targetId: p.id });
+                    }
+                };
+                targetsList.appendChild(btn);
+            });
+        }
+
+        function executeBotAction(roleTitle, botPlayer) {
+            const others = GameState.players.filter(p => p.id !== botPlayer.id);
+            const target = others[Math.floor(Math.random() * others.length)];
+            recordTurnAction(roleTitle, target ? target.id : GameState.players[0].id);
+        }
+
+        function recordTurnAction(roleTitle, targetId) {
+            if (!GameState.isHost) return;
+
+            GameState.turnActions[roleTitle] = targetId;
+            GameState.currentTurnIndex++;
+            net.broadcastState();
+
+            setTimeout(() => {
+                processNextTurn();
+            }, 500);
+        }
+
+        function finishRound() {
+            if (!GameState.isHost) return;
+
+            GameState.phase = 'ROUND_SUMMARY';
+            const criminalTargets = [];
+            const doctorTargets = [];
+            const policeTargets = [];
+
+            Object.keys(GameState.turnActions).forEach(roleTitle => {
+                const targetId = GameState.turnActions[roleTitle];
+                if (roleTitle.startsWith('Criminal')) criminalTargets.push(targetId);
+                if (roleTitle.startsWith('Doctor')) doctorTargets.push(targetId);
+                if (roleTitle.startsWith('Police')) policeTargets.push(targetId);
+            });
+
+            GameState.players.forEach(p => p.roundPoints = 0);
+
+            // Secret Point Matrix Calculation
+            // 1. Criminals: +1 pt if targeted a Villager
+            criminalTargets.forEach(targetId => {
+                const tPlayer = GameState.players.find(p => p.id === targetId);
+                if (tPlayer && tPlayer.roleType === 'villager') {
+                    GameState.players.filter(p => p.roleType === 'criminal').forEach(c => c.roundPoints += 1);
+                }
+            });
+
+            // 2. Doctors: +1 pt if healed a Villager targeted by a Criminal
+            doctorTargets.forEach(targetId => {
+                const tPlayer = GameState.players.find(p => p.id === targetId);
+                if (tPlayer && tPlayer.roleType === 'villager' && criminalTargets.includes(targetId)) {
+                    GameState.players.filter(p => p.roleType === 'doctor').forEach(d => d.roundPoints += 1);
+                }
+            });
+
+            // 3. Police: +1 pt if arrested a Criminal
+            policeTargets.forEach(targetId => {
+                const tPlayer = GameState.players.find(p => p.id === targetId);
+                if (tPlayer && tPlayer.roleType === 'criminal') {
+                    GameState.players.filter(p => p.roleType === 'police').forEach(pol => pol.roundPoints += 1);
+                }
+            });
+
+            // 4. Villagers: +1 pt if survived (not targeted OR saved by doctor)
+            GameState.players.filter(p => p.roleType === 'villager').forEach(v => {
+                const wasTargeted = criminalTargets.includes(v.id);
+                const wasSaved = doctorTargets.includes(v.id);
+                if (!wasTargeted || wasSaved) {
+                    v.roundPoints += 1;
+                }
+            });
+
+            // Cumulative score update
+            GameState.players.forEach(p => p.points += p.roundPoints);
+
+            net.broadcastState();
+            showRoundSummaryView();
+        }
+
+        function showRoundSummaryView() {
+            document.getElementById('view-arena-grid').classList.add('hidden');
+            document.getElementById('game-status-banner').classList.add('hidden');
+            const summaryModal = document.getElementById('view-round-summary');
+            const recapList = document.getElementById('recap-players-list');
+
+            // STRICT PRIVACY RULE: Reveals each player's role card and points ONLY! Never reveal who targeted whom.
+            recapList.innerHTML = GameState.players.map(p => {
+                let badgeStyle = 'background: rgba(245, 158, 11, 0.2); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.4);';
+                let iconClass = 'fa-wheat-awn';
+
+                if (p.roleType === 'criminal') {
+                    badgeStyle = 'background: rgba(239, 68, 68, 0.2); color: #f87171; border: 1px solid rgba(239, 68, 68, 0.4);';
+                    iconClass = 'fa-user-ninja';
+                } else if (p.roleType === 'doctor') {
+                    badgeStyle = 'background: rgba(16, 185, 129, 0.2); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);';
+                    iconClass = 'fa-user-doctor';
+                } else if (p.roleType === 'police') {
+                    badgeStyle = 'background: rgba(59, 130, 246, 0.2); color: #60a5fa; border: 1px solid rgba(59, 130, 246, 0.4);';
+                    iconClass = 'fa-shield-halved';
+                }
+
+                return `
+                    <div class="recap-item">
+                        <div class="recap-left">
+                            <span class="font-bold" style="color: #fff;">${p.name}</span>
+                            <span class="recap-role-tag" style="${badgeStyle}">
+                                <i class="fa-solid ${iconClass}"></i> ${p.roleTitle}
+                            </span>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="color: #34d399; font-weight: 800;">+${p.roundPoints} Pt</span>
+                            <span style="font-weight: 900; color: #fbbf24; background: rgba(0,0,0,0.4); padding: 2px 8px; border-radius: 8px;">${p.points} Total</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            summaryModal.classList.remove('hidden');
+            sfx.playPoints();
+
+            const btnNext = document.getElementById('btn-next-round');
+            if (GameState.currentRound >= GameState.maxRounds) {
+                btnNext.innerHTML = 'View Final Results 🏆';
+                btnNext.onclick = () => {
+                    if (GameState.isHost) {
+                        GameState.phase = 'FINAL_WINNER';
+                        net.broadcastState();
+                    }
+                    showFinalWinnerView();
+                };
+            } else {
+                btnNext.innerHTML = 'Next Round (Reshuffle Cards) <i class="fa-solid fa-arrow-right"></i>';
+                btnNext.onclick = () => {
+                    summaryModal.classList.add('hidden');
+                    if (GameState.isHost) {
+                        GameState.currentRound++;
+                        startRound();
+                    }
+                };
+            }
+        }
+
+        function showFinalWinnerView() {
+            document.getElementById('view-round-summary').classList.add('hidden');
+            document.getElementById('game-footer').classList.add('hidden');
+
+            const sorted = [...GameState.players].sort((a, b) => b.points - a.points);
+            const winner = sorted[0] || { name: 'None', points: 0 };
+
+            document.getElementById('final-winner-name').textContent = winner.name;
+            document.getElementById('final-winner-score').textContent = `Total Score: ${winner.points} Points`;
+
+            const list = document.getElementById('final-leaderboard-list');
+            list.innerHTML = sorted.map((p, idx) => `
+                <div style="display: flex; justify-content: space-between; padding: 8px 12px; border-radius: 10px; font-weight: 700; font-size: 12px; ${idx === 0 ? 'background: rgba(245, 158, 11, 0.2); border: 1px solid rgba(245, 158, 11, 0.4); color: #fff;' : 'background: rgba(30,41,59,0.5); color: #cbd5e1;'}">
+                    <span>#${idx + 1} ${p.name} ${idx === 0 ? '👑' : ''}</span>
+                    <span style="color: #fbbf24; font-family: monospace;">${p.points} Pts</span>
+                </div>
+            `).join('');
+
+            document.getElementById('view-final-winner').classList.remove('hidden');
+            sfx.playFanfare();
+        }
+
+        /* ===================================================================
+           4. UI CONTROLLERS & EVENT LISTENERS
+           =================================================================== */
+        function showToast(msg) {
+            const toast = document.getElementById('toast-msg');
+            toast.textContent = msg;
+            toast.classList.remove('hidden');
+            setTimeout(() => { toast.classList.add('hidden'); }, 3000);
+        }
+
+        function updateMyCardView() {
+            const myP = GameState.players.find(p => p.id === GameState.myId);
+            if (!myP || !myP.roleTitle) return;
+
+            const title = document.getElementById('card-role-title');
+            const desc = document.getElementById('card-role-desc');
+            const icon = document.getElementById('card-role-icon');
+            const cardBack = document.getElementById('card-back-view');
+
+            title.textContent = myP.roleTitle;
+            cardBack.className = `card-back ${myP.roleType}`;
+
+            if (myP.roleType === 'criminal') {
+                desc.textContent = 'Target villagers for points.';
+                icon.className = 'fa-solid fa-user-ninja';
+            } else if (myP.roleType === 'doctor') {
+                desc.textContent = 'Heal villagers to thwart strikes.';
+                icon.className = 'fa-solid fa-user-doctor';
+            } else if (myP.roleType === 'police') {
+                desc.textContent = 'Arrest hidden criminals.';
+                icon.className = 'fa-solid fa-shield-halved';
+            } else {
+                desc.textContent = 'Survive the round for points.';
+                icon.className = 'fa-solid fa-wheat-awn';
+            }
+        }
+
+        function renderLobbyGrid() {
+            const grid = document.getElementById('lobby-players-grid');
+            document.getElementById('player-count').textContent = GameState.players.length;
+
+            grid.innerHTML = GameState.players.map((p, idx) => `
+                <div class="player-badge">
+                    <div style="display: flex; align-items: center; gap: 6px;">
+                        <span style="width: 8px; height: 8px; border-radius: 50%; background: ${p.isBot ? '#818cf8' : '#34d399'};"></span>
+                        <span>${p.name} ${idx === 0 ? '👑' : ''}</span>
+                    </div>
+                    ${p.id === GameState.myId ? '<span style="color: #fbbf24; font-size: 9px;">YOU</span>' : ''}
+                </div>
+            `).join('');
+
+            const btnStart = document.getElementById('btn-start-game');
+            const btnAddBot = document.getElementById('btn-add-bot');
+            const guestMsg = document.getElementById('guest-waiting-msg');
+
+            if (GameState.isHost) {
+                btnStart.classList.remove('hidden');
+                btnAddBot.classList.remove('hidden');
+                guestMsg.classList.add('hidden');
+                btnStart.disabled = (GameState.players.length < 4);
+            } else {
+                btnStart.classList.add('hidden');
+                btnAddBot.classList.add('hidden');
+                guestMsg.classList.remove('hidden');
+            }
+        }
+
+        window.onload = function() {
+            // Screen auto-detect mode
+            if (window.innerWidth <= 600) {
+                document.body.className = 'mobile-mode';
+                document.getElementById('mode-icon').className = 'fa-solid fa-mobile-screen';
+                document.getElementById('mode-icon').style.color = '#fbbf24';
+                document.getElementById('mode-text').textContent = 'Mobile Mode';
+                GameState.mode = 'mobile';
+            }
+
+            // Desktop / Mobile Mode Toggle
+            document.getElementById('btn-mode-toggle').onclick = () => {
+                sfx.playClick();
+                const icon = document.getElementById('mode-icon');
+                const text = document.getElementById('mode-text');
+
+                if (GameState.mode === 'desktop') {
+                    GameState.mode = 'mobile';
+                    document.body.className = 'mobile-mode';
+                    icon.className = 'fa-solid fa-mobile-screen';
+                    icon.style.color = '#fbbf24';
+                    text.textContent = 'Mobile Mode';
+                } else {
+                    GameState.mode = 'desktop';
+                    document.body.className = 'desktop-mode';
+                    icon.className = 'fa-solid fa-desktop';
+                    icon.style.color = '#60a5fa';
+                    text.textContent = 'Desktop Mode';
+                }
+            };
+
+            // Audio Toggle
+            document.getElementById('btn-audio').onclick = () => {
+                sfx.muted = !sfx.muted;
+                document.getElementById('audio-icon').className = sfx.muted ? 
+                    'fa-solid fa-volume-xmark' : 'fa-solid fa-volume-high';
+                document.getElementById('audio-icon').style.color = sfx.muted ? '#f87171' : '#34d399';
+            };
+
+            // Instructions Modal
+            const rulesModal = document.getElementById('modal-rules');
+            document.getElementById('btn-rules').onclick = () => { sfx.playClick(); rulesModal.classList.remove('hidden'); };
+            document.getElementById('btn-close-rules').onclick = () => { sfx.playClick(); rulesModal.classList.add('hidden'); };
+
+            // Create Game
+            document.getElementById('btn-create-game').onclick = () => {
+                sfx.playClick();
+                const nameIn = document.getElementById('input-player-name').value.trim();
+                if (nameIn) GameState.playerName = nameIn;
+
+                const code = generate4LetterCode();
+                GameState.players = [{ id: GameState.myId, name: GameState.playerName, isBot: false, points: 0, roundPoints: 0 }];
+                GameState.phase = 'LOBBY';
+
+                net.initHost(code);
+
+                document.getElementById('view-start').classList.add('hidden');
+                document.getElementById('view-lobby').classList.remove('hidden');
+                document.getElementById('display-room-code').textContent = code;
+
+                renderLobbyGrid();
+            };
+
+            // Join Game Button
+            document.getElementById('btn-join-game').onclick = () => {
+                sfx.playClick();
+                const nameIn = document.getElementById('input-player-name').value.trim();
+                const codeIn = document.getElementById('input-room-code').value.trim().toUpperCase();
+
+                if (nameIn) GameState.playerName = nameIn;
+                if (!codeIn || codeIn.length !== 4) {
+                    showToast('Please enter a valid 4-letter room code.');
+                    return;
+                }
+
+                showToast(`Connecting to room ${codeIn}...`);
+
+                net.initGuest(
+                    codeIn,
+                    () => {
+                        GameState.phase = 'LOBBY';
+                        document.getElementById('view-start').classList.add('hidden');
+                        document.getElementById('view-lobby').classList.remove('hidden');
+                        document.getElementById('display-room-code').textContent = codeIn;
+                        renderLobbyGrid();
+                    },
+                    (errStr) => { showToast(errStr); }
+                );
+            };
+
+            // Copy Code Button
+            document.getElementById('btn-copy-code').onclick = () => {
+                sfx.playClick();
+                const code = GameState.roomCode;
+                const temp = document.createElement('textarea');
+                temp.value = code;
+                document.body.appendChild(temp);
+                temp.select();
+                document.execCommand('copy');
+                document.body.removeChild(temp);
+                showToast('Room code copied!');
+            };
+
+            // Add Bot Player
+            document.getElementById('btn-add-bot').onclick = () => {
+                sfx.playClick();
+                if (!GameState.isHost || GameState.players.length >= 8) return;
+                const botName = BOT_NAMES[GameState.players.length - 1] || `Bot ${GameState.players.length}`;
+                GameState.players.push({ id: 'bot_' + Math.random(), name: botName, isBot: true, points: 0, roundPoints: 0 });
+                renderLobbyGrid();
+                net.broadcastState();
+            };
+
+            // Select Rounds
+            document.getElementById('select-rounds').onchange = (e) => {
+                if (!GameState.isHost) return;
+                GameState.maxRounds = parseInt(e.target.value, 10);
+                net.broadcastState();
+            };
+
+            // Start Game
+            document.getElementById('btn-start-game').onclick = () => {
+                sfx.playClick();
+                if (GameState.isHost) startMatch();
+            };
+
+            // Secret Card Peek Flip Trigger
+            const peekBtn = document.getElementById('btn-peek-card');
+            const cardPersp = document.getElementById('secret-card-container');
+
+            const toggleCardFlip = () => {
+                sfx.playChime();
+                GameState.cardRevealed = !GameState.cardRevealed;
+                if (GameState.cardRevealed) {
+                    cardPersp.classList.add('flipped');
+                    document.getElementById('peek-text').textContent = 'Hide Role Card';
+                    document.getElementById('peek-icon').className = 'fa-solid fa-eye-slash';
+                } else {
+                    cardPersp.classList.remove('flipped');
+                    document.getElementById('peek-text').textContent = 'Peek Role Card';
+                    document.getElementById('peek-icon').className = 'fa-solid fa-eye';
+                }
+            };
+
+            peekBtn.onclick = toggleCardFlip;
+            cardPersp.onclick = toggleCardFlip;
+
+            // Play Again
+            document.getElementById('btn-play-again').onclick = () => {
+                sfx.playClick();
+                document.getElementById('view-final-winner').classList.add('hidden');
+                if (GameState.isHost) {
+                    GameState.phase = 'LOBBY';
+                    net.broadcastState();
+                }
+                document.getElementById('view-lobby').classList.remove('hidden');
+                renderLobbyGrid();
+            };
+        };
+    </script>
+</body>
+</html>
+    
+  </body>
+  
+</html>
